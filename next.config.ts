@@ -1,21 +1,59 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  // For GitHub Pages deployment
-  output: 'export', // Enable static export
-  images: {
-    unoptimized: true // Needed for static export
-  },
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  // Enable static export
+  output: 'export',
   
-  // Correct asset prefix configuration
+  // Ensure correct image handling for static export
+  images: {
+    unoptimized: true
+  },
+
+  // Asset prefix configuration
   assetPrefix: process.env.NODE_ENV === 'production' 
-    ? '/' // Use leading slash for production
+    ? '/' // or '/your-repo-name/' if in a subdirectory
     : undefined,
 
-  // If deploying to a GitHub Pages subdirectory
-  // Replace 'your-repo-name' with your actual repository name
-  basePath: process.env.NODE_ENV === 'production' 
-    ? '/your-repo-name' 
-    : undefined,
+  // Helps with GitHub Pages routing
+  trailingSlash: true,
+
+  // Webpack configuration for additional asset handling
+  webpack: (config, { isServer }) => {
+    config.module.rules.push({
+      test: /\.(mp3|wav|mpe?g|mov|avi|pdf)$/i,
+      use: [
+        {
+          loader: 'file-loader',
+          options: {
+            publicPath: '/_next/static/media',
+            outputPath: `${isServer ? '../' : ''}static/media`,
+            name: '[name].[hash].[ext]',
+          },
+        },
+      ],
+    });
+
+    return config;
+  },
+
+  // Optional: TypeScript path aliases
+  typescript: {
+    // Optionally enable type checking during build
+    tsconfigPath: './tsconfig.json'
+  },
+
+  // Optional: Add any environment variables or other configurations
+  env: {
+    // Custom environment variables
+    // NEXT_PUBLIC_EXAMPLE: process.env.NEXT_PUBLIC_EXAMPLE
+  },
+
+  // Redirect and rewrite rules (if needed)
+  // async rewrites() {
+  //   return [
+  //     // Custom rewrite rules
+  //   ]
+  // },
 }
 
-module.exports = nextConfig
+export default nextConfig
